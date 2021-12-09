@@ -38,11 +38,16 @@ namespace Win10_BrightnessSlider
             this.WindowState = FormWindowState.Normal;
             this.ShowInTaskbar = false;
             this.StartPosition = FormStartPosition.Manual;
-            this.Location = new Point(Screen.PrimaryScreen.WorkingArea.Width +22 ,
-                Screen.PrimaryScreen.WorkingArea.Height +22 );
+
+            var area = System.Windows.SystemParameters.WorkArea;
+            this.Location = new Point((int)area.Right - this.Width, (int)area.Bottom - this.Height);
+            eSetVis(false);
+            //this.Location = new Point(Screen.PrimaryScreen.WorkingArea.Width +22 ,
+            //    Screen.PrimaryScreen.WorkingArea.Height +22 );
 
 
-            //colors
+            // Colors
+            // Initial bg color (Will be changed by reading system accent color)
             BackColor = Color.FromArgb(31, 31, 31);
             label1.ForeColor = Color.White;
 
@@ -64,6 +69,7 @@ namespace Win10_BrightnessSlider
                 Application.Exit();
             });
 
+            // For debugging
             var mi2 = new MenuItem("State Of Window", (snd, ev) => {
                 var msg =
                 "visible:" + this.Visible + "\r\n" +
@@ -80,8 +86,21 @@ namespace Win10_BrightnessSlider
                 SetStartup(_mi3.Checked);
             });
 
+            var mi4 = new MenuItem("About - (based on v1.7.14)", (snd, ev) => {
+                var msg = "Based on official v1.7.14 source code. " +
+                          "(It seems that the released source code is not up to date while the binary file is. " +
+                          "And I have no idea which actual version my fork is based on.)\r\n" +
+                          "Original information:\r\n" +
+                          "==========================\r\n\r\n" +
+                          "Developer: blackholeearth \r\n" +
+                          "Official Site: \r\n" +
+                          "https://github.com/blackholeearth/Win10_BrightnessSlider \r\n";
+                MessageBox.Show(msg);
+            });
+
             cm.MenuItems.Add(mi1);
             cm.MenuItems.Add(mi3);
+            cm.MenuItems.Add(mi4);
 
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -108,8 +127,12 @@ namespace Win10_BrightnessSlider
         public void eSetVis(bool visible)
         {
             Console.WriteLine("eSetVis - vis:" + vis);
+
             this.WindowState = FormWindowState.Normal;
             this.StartPosition = FormStartPosition.Manual;
+
+            // Set background color to windows accent color when panel shows
+            this.SetBgColorToWindowsTheme();
 
             var scrWA = Screen.PrimaryScreen.WorkingArea;
             var p = new Point(scrWA.Width , scrWA.Height );
@@ -134,8 +157,6 @@ namespace Win10_BrightnessSlider
 
             }
 
-
-
         }
        
         private void Form1_Deactivate(object sender, EventArgs e)
@@ -150,7 +171,7 @@ namespace Win10_BrightnessSlider
 
             if ( e.Button == MouseButtons.Left)
             {
-                Console.WriteLine("Notify Cliiked - vis:" + vis);
+                Console.WriteLine("Notify Clicked - vis:" + vis);
 
                 eSetVis(!vis);
             }
@@ -163,14 +184,49 @@ namespace Win10_BrightnessSlider
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
+            /*
             byte g = 0;
             if (byte.TryParse(trackBar1.Value + "", out g))
             {
                 SetBrightness(g);
                 label1.Text = g + "";
             }
+            */
+        }
 
+        private void SetBgColorToWindowsTheme()
+        {
+            BackColor = ThemeInfo.GetVariantThemeColor();
+            //BackColor = ThemeInfo.GetThemeColor();
+        }
 
+        private double Clamp(double v, double lo, double hi)
+        {
+            if (v > hi) return hi;
+            if (v < lo) return lo;
+            return v;
+        }
+
+        private void SetBrightnessByMouseX(int x)
+        {
+            double v = ((double)x / (double)trackBar1.Width) * (trackBar1.Maximum - trackBar1.Minimum);
+            int i = Convert.ToInt32(Clamp(v, trackBar1.Minimum, trackBar1.Maximum));
+            byte b = Convert.ToByte(Clamp(v, 0.0, 100.0));
+            trackBar1.Value = i;
+            SetBrightness(b);
+            label1.Text = b + "";
+        }
+
+        private void MouseDownHandler(object sender, MouseEventArgs e)
+        {
+            if (e.Button.Equals(MouseButtons.Left))
+                SetBrightnessByMouseX(e.X);
+        }
+
+        private void MouseMoveHandler(object sender, MouseEventArgs e)
+        {
+            if (e.Button.Equals(MouseButtons.Left))
+                SetBrightnessByMouseX(e.X);
         }
 
         static void SetBrightness(byte targetBrightness)
@@ -205,7 +261,6 @@ namespace Win10_BrightnessSlider
                         int br = 0;
                         int.TryParse(br_obj+"", out br);
                         return br;
-                        break;
                     }
                 }
             }
@@ -238,7 +293,10 @@ namespace Win10_BrightnessSlider
 
         }
 
+        private void label1_Click(object sender, EventArgs e)
+        {
 
+        }
 
     }
 

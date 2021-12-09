@@ -1,4 +1,17 @@
 # Win10_BrightnessSlider
+
+------------------------------------------
+
+  Based on official source code v1.7.14.
+
+  Changes:
+  - Get background color from system theme.
+  - Thumb is still draggble when click happens elsewhere on the slider.
+
+  Texts below are the original README.
+
+------------------------------------------
+
 this app puts a Monitor Brightness icon to on Taskbar Tray. So you can access it with 1 click.
 targeting laptops. 
 
@@ -6,7 +19,7 @@ targeting laptops.
 * **requirements**: 
   * .net4.6.2 framework.  (win7 may need to install)
   * for ddci monitors, ([make sure  ddci is enabled on monitor menu](https://github.com/blackholeearth/Win10_BrightnessSlider/blob/master/enable%20ddc-ci.jpg?raw=true)
-)
+  )
   *  make sure you do install/update your graphic driver 
   
 * **Note For VirusAlert, Developers**: 
