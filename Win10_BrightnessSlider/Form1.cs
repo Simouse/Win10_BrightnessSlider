@@ -42,8 +42,6 @@ namespace Win10_BrightnessSlider
             var area = System.Windows.SystemParameters.WorkArea;
             this.Location = new Point((int)area.Right - this.Width, (int)area.Bottom - this.Height);
             eSetVis(false);
-            //this.Location = new Point(Screen.PrimaryScreen.WorkingArea.Width +22 ,
-            //    Screen.PrimaryScreen.WorkingArea.Height +22 );
 
 
             // Colors
@@ -51,9 +49,11 @@ namespace Win10_BrightnessSlider
             BackColor = Color.FromArgb(31, 31, 31);
             label1.ForeColor = Color.White;
 
-            //form show hide event
-            notifyIcon1.MouseClick += NotifyIcon1_MouseClick;
-            //clicked outside of form
+            // form show hide event
+            notifyIcon1.MouseUp += NotifyIcon1_MouseClick;
+            //notifyIcon1.MouseClick += NotifyIcon1_MouseClick;
+
+            // clicked outside of form
             Deactivate += Form1_Deactivate;
 
 
@@ -90,8 +90,8 @@ namespace Win10_BrightnessSlider
                 var msg = "Based on official v1.7.14 source code. " +
                           "(It seems that the released source code is not up to date while the binary file is. " +
                           "And I have no idea which actual version my fork is based on.)\r\n" +
-                          "Original information:\r\n" +
-                          "==========================\r\n\r\n" +
+                          "Original information is shown below:\r\n" +
+                          "\r\n\r\n" +
                           "Developer: blackholeearth \r\n" +
                           "Official Site: \r\n" +
                           "https://github.com/blackholeearth/Win10_BrightnessSlider \r\n";
@@ -123,22 +123,32 @@ namespace Win10_BrightnessSlider
         }
 
 
-        bool vis = false;
+        private bool vis = false;
+        private DateTime visChangeTime = DateTime.UtcNow;
+
         public void eSetVis(bool visible)
         {
-            Console.WriteLine("eSetVis - vis:" + vis);
+            // Prevent multiple entering events
+            var now = DateTime.UtcNow;
+            if (visChangeTime.AddMilliseconds(125.0) > now)
+            {
+                return;
+            }
+            visChangeTime = now;
+
+            Console.WriteLine("[eSetVis] vis: " + vis + " -> " + !vis);
 
             this.WindowState = FormWindowState.Normal;
             this.StartPosition = FormStartPosition.Manual;
-
-            // Set background color to windows accent color when panel shows
-            this.SetBgColorToWindowsTheme();
-
+            
             var scrWA = Screen.PrimaryScreen.WorkingArea;
-            var p = new Point(scrWA.Width , scrWA.Height );
+            var p = new Point(scrWA.Width , scrWA.Height);
 
             if (visible)
             {
+                // Set background color to windows accent color when panel shows
+                this.SetBgColorToWindowsTheme();
+
                 p.Offset(-this.Width, -this.Height);
                 this.Location = p;
 
@@ -154,9 +164,7 @@ namespace Win10_BrightnessSlider
                 this.Location = p;
 
                 vis = false;
-
             }
-
         }
        
         private void Form1_Deactivate(object sender, EventArgs e)
@@ -166,38 +174,27 @@ namespace Win10_BrightnessSlider
         
         private void NotifyIcon1_MouseClick(object sender, MouseEventArgs e)
         {
-            notifyIcon1.MouseClick -= NotifyIcon1_MouseClick;
-            Deactivate -= Form1_Deactivate;
-
-            if ( e.Button == MouseButtons.Left)
+            if (vis)
             {
-                Console.WriteLine("Notify Clicked - vis:" + vis);
-
-                eSetVis(!vis);
+                this.OnDeactivate(e);
             }
-           
-
-            notifyIcon1.MouseClick += NotifyIcon1_MouseClick;
-            Deactivate += Form1_Deactivate;
-
-        }
-
-        private void trackBar1_Scroll(object sender, EventArgs e)
-        {
-            /*
-            byte g = 0;
-            if (byte.TryParse(trackBar1.Value + "", out g))
+            else
             {
-                SetBrightness(g);
-                label1.Text = g + "";
+                this.eSetVis(true);
             }
-            */
+
+            //notifyIcon1.MouseClick -= NotifyIcon1_MouseClick;
+            //this.Deactivate -= Form1_Deactivate;
+
+            
+
+            //this.Deactivate += Form1_Deactivate;
+            //notifyIcon1.MouseClick += NotifyIcon1_MouseClick;
         }
 
         private void SetBgColorToWindowsTheme()
         {
             BackColor = ThemeInfo.GetVariantThemeColor();
-            //BackColor = ThemeInfo.GetThemeColor();
         }
 
         private double Clamp(double v, double lo, double hi)

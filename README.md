@@ -1,7 +1,5 @@
 # Win10_BrightnessSlider
 
-------------------------------------------
-
   Based on official source code v1.7.14.
 
   Changes:
